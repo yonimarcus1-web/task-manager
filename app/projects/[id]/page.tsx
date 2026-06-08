@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Task } from '@/components/tasks/TaskDetail';
 import TaskList from '@/components/tasks/TaskList';
@@ -13,8 +14,9 @@ type View = 'list' | 'kanban' | 'gantt';
 const statusLabel: Record<string, string> = { active: 'פעיל', completed: 'הושלם', paused: 'מושהה' };
 const statusColor: Record<string, string> = { active: 'bg-green-100 text-green-700', completed: 'bg-blue-100 text-blue-700', paused: 'bg-yellow-100 text-yellow-700' };
 
-export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProjectPage() {
+  const params = useParams();
+  const id = params.id as string;
   const openTaskId = undefined;
 
   const [project, setProject] = useState<Project | null>(null);
