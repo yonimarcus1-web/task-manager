@@ -52,14 +52,24 @@ export default function TaskDetail({ task, onClose, onSave, projectId }: {
 
   const save = async () => {
     setSaving(true);
-    if (isNew) {
-      await fetch(`/api/projects/${projectId}/tasks`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
-      });
-    } else {
-      await fetch(`/api/tasks/${task!.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
-      });
+    try {
+      const res = isNew
+        ? await fetch(`/api/projects/${projectId}/tasks`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+          })
+        : await fetch(`/api/tasks/${task!.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+          });
+      if (!res.ok) {
+        const err = await res.text();
+        alert('שגיאה בשמירה: ' + err);
+        setSaving(false);
+        return;
+      }
+    } catch (e) {
+      alert('שגיאת רשת: ' + e);
+      setSaving(false);
+      return;
     }
     setSaving(false);
     onSave();
