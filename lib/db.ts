@@ -81,6 +81,15 @@ export async function initSchema() {
     )
   `;
 
+  // Add missing columns to existing tasks table (safe to run multiple times)
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type TEXT DEFAULT 'general'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignees JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS checklist JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS start_date DATE`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence JSONB`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS dependencies JSONB DEFAULT '[]'`;
+
   // Insert default settings if not exist
   const defaults: Record<string, string> = {
     business_name: 'מנהל פרויקטים',
