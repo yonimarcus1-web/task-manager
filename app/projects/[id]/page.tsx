@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Task } from '@/components/tasks/TaskDetail';
@@ -14,7 +14,11 @@ type View = 'list' | 'kanban' | 'gantt';
 const statusLabel: Record<string, string> = { active: 'פעיל', completed: 'הושלם', paused: 'מושהה' };
 const statusColor: Record<string, string> = { active: 'bg-green-100 text-green-700', completed: 'bg-blue-100 text-blue-700', paused: 'bg-yellow-100 text-yellow-700' };
 
-export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ProjectPageWrapper({ params }: { params: Promise<{ id: string }> }) {
+  return <Suspense fallback={<div className="flex items-center justify-center h-64 text-slate-400">טוען...</div>}><ProjectPage params={params} /></Suspense>;
+}
+
+function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const searchParams = useSearchParams();
   const openTaskId = searchParams.get('task') ? parseInt(searchParams.get('task')!) : undefined;
