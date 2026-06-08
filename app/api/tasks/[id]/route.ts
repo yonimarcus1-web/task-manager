@@ -42,6 +42,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const [current] = await sql`SELECT * FROM tasks WHERE id = ${id}`;
   if (!current) return NextResponse.json({ error: 'לא נמצא' }, { status: 404 });
 
+  // Ensure columns exist
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type TEXT DEFAULT 'general'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignees JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS checklist JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS start_date DATE`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence JSONB`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS dependencies JSONB DEFAULT '[]'`;
+
   const { title, description, status, priority, task_type, assigned_to, assignees,
     tags, checklist, start_date, due_date, recurrence, dependencies } = body;
 

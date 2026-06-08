@@ -16,10 +16,21 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const sql = getDb();
-  const { parent_id, title, description, priority, task_type, assigned_to, assignees, tags, start_date, due_date, recurrence, dependencies } = await req.json();
+  const body = await req.json();
+  const { parent_id, title, description, priority, task_type, assigned_to, start_date, due_date } = body;
+
+  // Ensure columns exist before inserting
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type TEXT DEFAULT 'general'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignees JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS checklist JSONB DEFAULT '[]'`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS start_date DATE`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence JSONB`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS dependencies JSONB DEFAULT '[]'`;
+
   const [task] = await sql`
-    INSERT INTO tasks (project_id, parent_id, title, description, priority, task_type, assigned_to, assignees, tags, start_date, due_date, recurrence, dependencies)
-    VALUES (${id}, ${parent_id || null}, ${title}, ${description}, ${priority ?? 'medium'}, ${task_type ?? 'general'}, ${assigned_to}, ${JSON.stringify(assignees ?? [])}, ${JSON.stringify(tags ?? [])}, ${start_date || null}, ${due_date || null}, ${recurrence ? JSON.stringify(recurrence) : null}, ${JSON.stringify(dependencies ?? [])})
+    INSERT INTO tasks (project_id, parent_id, title, description, priority, task_type, assigned_to, start_date, due_date)
+    VALUES (${id}, ${parent_id || null}, ${title}, ${description ?? ''}, ${priority ?? 'medium'}, ${task_type ?? 'general'}, ${assigned_to ?? ''}, ${start_date || null}, ${due_date || null})
     RETURNING *
   `;
   await logHistory(task.id, 'יצירה', undefined, undefined, title);
